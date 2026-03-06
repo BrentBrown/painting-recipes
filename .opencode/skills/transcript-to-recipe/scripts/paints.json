@@ -2697,8 +2697,8 @@
       "army_painter": "No equivalent"
     },
     "Tidal Blue": {
-      "ttc": "No equivalent",
-      "wave": null,
+      "ttc": "Cursed Blue",
+      "wave": "W2",
       "citadel": "Ahriman Blue",
       "army_painter": "No equivalent"
     },
@@ -2745,8 +2745,8 @@
       "army_painter": "No equivalent"
     },
     "Deep Ocean Blue": {
-      "ttc": "No equivalent",
-      "wave": null,
+      "ttc": "Oxidation Green",
+      "wave": "W3",
       "citadel": "Stegadon Scale Green",
       "army_painter": "No equivalent"
     },
@@ -2805,8 +2805,8 @@
       "army_painter": "No equivalent"
     },
     "Hydra Turquoise": {
-      "ttc": "No equivalent",
-      "wave": null,
+      "ttc": "Mythic Turquoise",
+      "wave": "W3",
       "citadel": "Temple Guard Blue",
       "army_painter": "Hydra Turquoise"
     },
@@ -3303,8 +3303,8 @@
       "army_painter": "No equivalent"
     },
     "Dusty Skull": {
-      "ttc": "No equivalent",
-      "wave": null,
+      "ttc": "Rodent Grey",
+      "wave": "W2",
       "citadel": "Stormvermin Fur",
       "army_painter": "No equivalent"
     },
@@ -3519,8 +3519,8 @@
       "army_painter": "No equivalent"
     },
     "Weapon Bronze": {
-      "ttc": "No equivalent",
-      "wave": null,
+      "ttc": "Chaos Bronze",
+      "wave": "W3",
       "citadel": "Brass Scorpion",
       "army_painter": "Weapon Bronze"
     },
@@ -3555,8 +3555,8 @@
       "army_painter": "Tainted Gold"
     },
     "Bright Gold": {
-      "ttc": "No equivalent",
-      "wave": null,
+      "ttc": "Glistening Gold",
+      "wave": "W1",
       "citadel": "Auric Armour Gold",
       "army_painter": "Bright Gold"
     },
@@ -3591,8 +3591,8 @@
       "army_painter": "Plate Mail Metal"
     },
     "Cobalt Metal": {
-      "ttc": "No equivalent",
-      "wave": null,
+      "ttc": "Blue Steel",
+      "wave": "W3",
       "citadel": "Grey Knights Steel",
       "army_painter": "No equivalent"
     },

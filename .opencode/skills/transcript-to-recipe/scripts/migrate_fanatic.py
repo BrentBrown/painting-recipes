@@ -108,34 +108,79 @@ def parse_fanatic_md(path: Path) -> list[dict]:
     return rows
 
 
-def build_fanatic_block(rows: list[dict], citadel_table: dict) -> dict:
+def build_reverse_lookup(paints: dict) -> dict:
+    """
+    Build a comprehensive citadel_name → {ttc, wave} map by scanning all brand
+    tables and the TTC table in reverse (via each entry's 'citadel' field).
+    """
+    reverse = {}
+
+    # Forward scan: any brand table entry that has both citadel + ttc values
+    for brand, table in paints.items():
+        if brand in ('Warpaints Fanatic', 'Two Thin Coats'):
+            continue
+        for entry in table.values():
+            c = entry.get('citadel', '')
+            t = entry.get('ttc', '')
+            w = entry.get('wave')
+            if c and c != NO_EQ and t and t != NO_EQ and c not in reverse:
+                reverse[c] = {'ttc': t, 'wave': w}
+
+    # Reverse scan of the TTC table: TTC name is the ttc value, citadel field is the key
+    for ttc_name, entry in paints.get('Two Thin Coats', {}).items():
+        c = entry.get('citadel', '')
+        if c and c != NO_EQ and c not in reverse:
+            reverse[c] = {'ttc': ttc_name, 'wave': entry.get('wave')}
+
+    return reverse
+
+
+def build_fanatic_block(rows: list[dict], paints: dict) -> dict:
     """
     Build the "Warpaints Fanatic" JSON block.
-    TTC + wave derived from the Citadel table; tries each compound option in order.
+    TTC + wave derived first from the Citadel table, then via extended reverse
+    lookup across all brand tables and the TTC table.
     """
+    citadel_table = paints.get('Citadel', {})
+    reverse = build_reverse_lookup(paints)
+
     block = {}
     unmatched = []
 
     for row in rows:
-        fanatic   = row['fanatic']
-        wp        = row['wp']        # → army_painter
-        citadel   = row['citadel']   # → citadel col
+        fanatic          = row['fanatic']
+        wp               = row['wp']        # → army_painter
+        citadel          = row['citadel']   # → citadel col
 
-        # Derive TTC by looking up Citadel candidates
-        ttc, wave = NO_EQ, None
-        citadel_resolved = citadel  # what we'll store
+        ttc, wave        = NO_EQ, None
+        citadel_resolved = citadel
 
         if citadel != NO_EQ:
             candidates = first_option(citadel)
+
+            # Pass 1: direct Citadel table lookup
             for candidate in candidates:
                 entry = citadel_table.get(candidate)
                 if entry:
                     ttc  = entry.get('ttc', NO_EQ) or NO_EQ
                     wave = entry.get('wave') if ttc != NO_EQ else None
-                    citadel_resolved = candidate  # store the matched name
+                    citadel_resolved = candidate
                     break
-            else:
-                unmatched.append(f"  {fanatic!r} → Citadel candidates {candidates} not in table")
+
+            # Pass 2: extended reverse lookup across all tables
+            if ttc == NO_EQ:
+                for candidate in candidates:
+                    hit = reverse.get(candidate)
+                    if hit:
+                        ttc  = hit['ttc']
+                        wave = hit['wave']
+                        citadel_resolved = candidate
+                        break
+
+            if ttc == NO_EQ:
+                unmatched.append(
+                    f"  {fanatic!r} → Citadel candidates {candidates} — no TTC equivalent found"
+                )
 
         block[fanatic] = {
             'ttc':          ttc,
@@ -145,7 +190,7 @@ def build_fanatic_block(rows: list[dict], citadel_table: dict) -> dict:
         }
 
     if unmatched:
-        print(f"\n{len(unmatched)} Citadel name(s) not found in paints.json — TTC set to '{NO_EQ}':")
+        print(f"\n{len(unmatched)} paint(s) with no TTC equivalent (set to '{NO_EQ}'):")
         for m in unmatched:
             print(m)
 
@@ -159,15 +204,14 @@ def main():
 
     print(f"Loading {PAINTS_JSON} ...")
     paints = load_paints()
-    citadel_table = paints.get('Citadel', {})
-    print(f"  Citadel table: {len(citadel_table)} entries")
+    print(f"  Citadel table: {len(paints.get('Citadel', {}))} entries")
 
     print(f"Parsing {SOURCE_MD} ...")
     rows = parse_fanatic_md(SOURCE_MD)
     print(f"  Parsed {len(rows)} Warpaints Fanatic paints")
 
     print("Building Warpaints Fanatic block ...")
-    fanatic_block = build_fanatic_block(rows, citadel_table)
+    fanatic_block = build_fanatic_block(rows, paints)
 
     ttc_found    = sum(1 for v in fanatic_block.values() if v['ttc'] != NO_EQ)
     ttc_missing  = sum(1 for v in fanatic_block.values() if v['ttc'] == NO_EQ)
