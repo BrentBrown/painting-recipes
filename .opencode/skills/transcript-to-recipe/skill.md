@@ -31,7 +31,7 @@ When given a source (video transcript, article, voice memo, or notes), extract
 and structure the painting recipe using the format and conventions below.
 
 **Your job is to populate the recipe structure and identify paints. Paint
-equivalents (Two Thin Coats, Citadel, Army Painter columns) are filled
+equivalents (Two Thin Coats, Citadel, Warpaints Fanatic columns) are filled
 automatically by a script after you generate the markdown — leave those
 columns blank.**
 
@@ -100,7 +100,7 @@ Never use spaces, capitals, or underscores in filenames.
 **Source:** [title, creator, URL if applicable]
 **Source type:** [video / article / voice memo / experimentation]
 **Source brand:** [primary brand used in the source]
-**Paint brands:** TTC / Citadel / Army Painter
+**Paint brands:** TTC / Citadel / Warpaints Fanatic
 **Tags:** [see taxonomy]
 
 ## Notes
@@ -108,7 +108,7 @@ Never use spaces, capitals, or underscores in filenames.
 
 ## Paint Equivalents
 
-| Role | Brand | Source Paint | Two Thin Coats | Citadel | Army Painter |
+| Role | Brand | Source Paint | Two Thin Coats | Citadel | Warpaints Fanatic |
 |---|---|---|---|---|---|
 
 
