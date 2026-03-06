@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Obsidian
+.obsidian/
+
+# Node / Bun
+node_modules/
+bun.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Generated output
+Printables/*.docx
+
+# IDE
+.idea/
+.vscode/
+.zed/
+*.swp
+*.swo
+
+# Local config (secrets, etc.)
+.env
+.env.*
+credentials.*
