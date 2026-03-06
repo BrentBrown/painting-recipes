@@ -40,7 +40,7 @@ columns blank.**
   Source Paint column. Never remove, replace, or normalise it.
 - Populate the Brand column for every row using exactly one of these strings:
   `Citadel`, `Vallejo Game Color`, `Vallejo Model Color`, `Scale 75`,
-  `Reaper`, `P3`, `Two Thin Coats`
+  `Reaper`, `P3`, `Two Thin Coats`, `Warpaints Fanatic`
 - If the source uses a brand not in this list, write the brand name as-is
   (e.g. `Liquitex`, `Contrast Medium`). The script will write "No equivalent"
   for unknown brands — this is correct behaviour.
