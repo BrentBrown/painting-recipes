@@ -101,6 +101,9 @@ def lookup_equivalents(
     The Warpaints Fanatic column is resolved via a reverse lookup from the
     Citadel equivalent; for a Warpaints Fanatic source paint the column
     contains the source paint itself.
+
+    For Citadel Contrast and Army Painter Speedpaint, the Warpaints Fanatic
+    column shows the cross-brand equivalent (Speedpaint or Citadel Contrast).
     """
     stripped = strip_suffixes(source_paint)
 
@@ -117,6 +120,16 @@ def lookup_equivalents(
 
     if entry is None:
         return NO_EQ, NO_EQ, NO_EQ
+
+    # --- Special handling for Citadel Contrast ---
+    if brand == "Citadel Contrast":
+        speedpaint = entry.get("speedpaint", NO_EQ)
+        return NO_EQ, NO_EQ, speedpaint
+
+    # --- Special handling for Army Painter Speedpaint ---
+    if brand == "Army Painter Speedpaint":
+        contrast = entry.get("citadel_contrast", NO_EQ)
+        return NO_EQ, NO_EQ, contrast
 
     # --- TTC column ---
     if brand == "Two Thin Coats":

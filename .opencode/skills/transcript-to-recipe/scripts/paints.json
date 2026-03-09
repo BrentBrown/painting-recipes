@@ -3770,5 +3770,279 @@
       "citadel": "Moon Dust",
       "army_painter": "No equivalent"
     }
+  },
+  "Citadel Contrast": {
+    "Ironjawz Yellow": {
+      "speedpaint": "Maize Yellow"
+    },
+    "Imperial Fist": {
+      "speedpaint": "Pastel Yellow"
+    },
+    "Iyanden Yellow": {
+      "speedpaint": "Zealot Yellow"
+    },
+    "Nazdreg Yellow": {
+      "speedpaint": "Ancient Honey"
+    },
+    "Magmadroth Flame": {
+      "speedpaint": "Bright Red"
+    },
+    "Gryph-Hound Orange": {
+      "speedpaint": "Fire Giant Orange"
+    },
+    "Baal Red": {
+      "speedpaint": "Carmine Dragon"
+    },
+    "Blood Angels Red": {
+      "speedpaint": "Blood Red"
+    },
+    "Flesh Tearers Red": {
+      "speedpaint": "Blood Red"
+    },
+    "Doomfire Magenta": {
+      "speedpaint": "Poppy Red"
+    },
+    "Volupos Pink": {
+      "speedpaint": "Purple Alchemy"
+    },
+    "Sigvald Burgundy": {
+      "speedpaint": "Purple Alchemy"
+    },
+    "Magos Purple": {
+      "speedpaint": "Moonlake Coral"
+    },
+    "Luxion Purple": {
+      "speedpaint": "Purple Swarm"
+    },
+    "Leviathan Purple": {
+      "speedpaint": "Hive Dweller Purple"
+    },
+    "Shyish Purple": {
+      "speedpaint": "Hive Dweller Purple"
+    },
+    "Frostheart": {
+      "speedpaint": "Caribbean Ocean"
+    },
+    "Stormfiend": {
+      "speedpaint": "Lizardfolk Cyan"
+    },
+    "Talassar Blue": {
+      "speedpaint": "Magic Blue"
+    },
+    "Asurmen Blue": {
+      "speedpaint": "Tidal Wave"
+    },
+    "Celestium Blue": {
+      "speedpaint": "Royal Robes"
+    },
+    "Ultramarines Blue": {
+      "speedpaint": "Highlord Blue"
+    },
+    "Leviadon Blue": {
+      "speedpaint": "Cloudburst Blue"
+    },
+    "Gryph-Charger Grey": {
+      "speedpaint": "Gunner Camo"
+    },
+    "Aethermatic Blue": {
+      "speedpaint": "Pastel Seafoam"
+    },
+    "Akhelian Green": {
+      "speedpaint": "Raging Sea"
+    },
+    "Aeldari Emerald": {
+      "speedpaint": "Thunderbird Blue"
+    },
+    "Karandras Green": {
+      "speedpaint": "Shamrock Green"
+    },
+    "Warp Lightning": {
+      "speedpaint": "Shamrock Green"
+    },
+    "Ork Flesh": {
+      "speedpaint": "Orc Skin"
+    },
+    "Dark Angels Green": {
+      "speedpaint": "Absolution Green"
+    },
+    "Militarum Green": {
+      "speedpaint": "Algae Green"
+    },
+    "Creed Camo": {
+      "speedpaint": "Forest Spite"
+    },
+    "Plaguebearer Flesh": {
+      "speedpaint": "Malignant Green"
+    },
+    "Guilliman Flesh": {
+      "speedpaint": "Goddess Glow"
+    },
+    "Fyreslayer Flesh": {
+      "speedpaint": "Aged Hide"
+    },
+    "Darkoath Flesh": {
+      "speedpaint": "Peachy Flesh"
+    },
+    "Gore-grunta Fur": {
+      "speedpaint": "Hardened Leather"
+    },
+    "Skeleton Horde": {
+      "speedpaint": "Pallid Bone"
+    },
+    "Aggaros Dunes": {
+      "speedpaint": "Ochre Clay"
+    },
+    "Garaghak's Sewer": {
+      "speedpaint": "Brownish Decay"
+    },
+    "Wyldwood": {
+      "speedpaint": "Satchel Brown"
+    },
+    "Ratling Grime": {
+      "speedpaint": "Desolate Brown"
+    },
+    "Apothecary White": {
+      "speedpaint": "Holy White"
+    },
+    "Space Wolves Grey": {
+      "speedpaint": "Occultist Cloak"
+    },
+    "Basilicanum Grey": {
+      "speedpaint": "Gravelord Grey"
+    },
+    "Black Templar": {
+      "speedpaint": "Grim Black"
+    }
+  },
+  "Army Painter Speedpaint": {
+    "Maize Yellow": {
+      "citadel_contrast": "Ironjawz Yellow"
+    },
+    "Pastel Yellow": {
+      "citadel_contrast": "Imperial Fist"
+    },
+    "Zealot Yellow": {
+      "citadel_contrast": "Iyanden Yellow"
+    },
+    "Ancient Honey": {
+      "citadel_contrast": "Nazdreg Yellow"
+    },
+    "Bright Red": {
+      "citadel_contrast": "Magmadroth Flame"
+    },
+    "Fire Giant Orange": {
+      "citadel_contrast": "Gryph-Hound Orange"
+    },
+    "Carmine Dragon": {
+      "citadel_contrast": "Baal Red"
+    },
+    "Blood Red": {
+      "citadel_contrast": "Blood Angels Red"
+    },
+    "Poppy Red": {
+      "citadel_contrast": "Doomfire Magenta"
+    },
+    "Purple Alchemy": {
+      "citadel_contrast": "Volupos Pink"
+    },
+    "Moonlake Coral": {
+      "citadel_contrast": "Magos Purple"
+    },
+    "Purple Swarm": {
+      "citadel_contrast": "Luxion Purple"
+    },
+    "Hive Dweller Purple": {
+      "citadel_contrast": "Leviathan Purple"
+    },
+    "Caribbean Ocean": {
+      "citadel_contrast": "Frostheart"
+    },
+    "Lizardfolk Cyan": {
+      "citadel_contrast": "Stormfiend"
+    },
+    "Magic Blue": {
+      "citadel_contrast": "Talassar Blue"
+    },
+    "Tidal Wave": {
+      "citadel_contrast": "Asurmen Blue"
+    },
+    "Royal Robes": {
+      "citadel_contrast": "Celestium Blue"
+    },
+    "Highlord Blue": {
+      "citadel_contrast": "Ultramarines Blue"
+    },
+    "Cloudburst Blue": {
+      "citadel_contrast": "Leviadon Blue"
+    },
+    "Gunner Camo": {
+      "citadel_contrast": "Gryph-Charger Grey"
+    },
+    "Pastel Seafoam": {
+      "citadel_contrast": "Aethermatic Blue"
+    },
+    "Raging Sea": {
+      "citadel_contrast": "Akhelian Green"
+    },
+    "Thunderbird Blue": {
+      "citadel_contrast": "Aeldari Emerald"
+    },
+    "Shamrock Green": {
+      "citadel_contrast": "Karandras Green"
+    },
+    "Orc Skin": {
+      "citadel_contrast": "Ork Flesh"
+    },
+    "Absolution Green": {
+      "citadel_contrast": "Dark Angels Green"
+    },
+    "Algae Green": {
+      "citadel_contrast": "Militarum Green"
+    },
+    "Forest Spite": {
+      "citadel_contrast": "Creed Camo"
+    },
+    "Malignant Green": {
+      "citadel_contrast": "Plaguebearer Flesh"
+    },
+    "Goddess Glow": {
+      "citadel_contrast": "Guilliman Flesh"
+    },
+    "Aged Hide": {
+      "citadel_contrast": "Fyreslayer Flesh"
+    },
+    "Peachy Flesh": {
+      "citadel_contrast": "Darkoath Flesh"
+    },
+    "Hardened Leather": {
+      "citadel_contrast": "Gore-grunta Fur"
+    },
+    "Pallid Bone": {
+      "citadel_contrast": "Skeleton Horde"
+    },
+    "Ochre Clay": {
+      "citadel_contrast": "Aggaros Dunes"
+    },
+    "Brownish Decay": {
+      "citadel_contrast": "Garaghak's Sewer"
+    },
+    "Satchel Brown": {
+      "citadel_contrast": "Wyldwood"
+    },
+    "Desolate Brown": {
+      "citadel_contrast": "Ratling Grime"
+    },
+    "Holy White": {
+      "citadel_contrast": "Apothecary White"
+    },
+    "Occultist Cloak": {
+      "citadel_contrast": "Space Wolves Grey"
+    },
+    "Gravelord Grey": {
+      "citadel_contrast": "Basilicanum Grey"
+    },
+    "Grim Black": {
+      "citadel_contrast": "Black Templar"
+    }
   }
 }
