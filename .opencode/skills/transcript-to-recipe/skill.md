@@ -40,7 +40,8 @@ columns blank.**
   Source Paint column. Never remove, replace, or normalise it.
 - Populate the Brand column for every row using exactly one of these strings:
   `Citadel`, `Vallejo Game Color`, `Vallejo Model Color`, `Scale 75`,
-  `Reaper`, `P3`, `Two Thin Coats`, `Warpaints Fanatic`
+  `Reaper`, `P3`, `Two Thin Coats`, `Warpaints Fanatic`, `Citadel Contrast`,
+  `Army Painter Speedpaint`
 - If the source uses a brand not in this list, write the brand name as-is
   (e.g. `Liquitex`, `Contrast Medium`). The script will write "No equivalent"
   for unknown brands — this is correct behaviour.
@@ -100,7 +101,7 @@ Never use spaces, capitals, or underscores in filenames.
 **Source:** [title, creator, URL if applicable]
 **Source type:** [video / article / voice memo / experimentation]
 **Source brand:** [primary brand used in the source]
-**Paint brands:** TTC / Citadel / Warpaints Fanatic
+**Paint brands:** TTC / Citadel / Warpaints Fanatic (or Speedpaint 2.0)
 **Tags:** [see taxonomy]
 
 ## Notes
@@ -110,6 +111,9 @@ Never use spaces, capitals, or underscores in filenames.
 
 | Role | Brand | Source Paint | Two Thin Coats | Citadel | Warpaints Fanatic |
 |---|---|---|---|---|---|
+
+<!-- Note: the script updates the last column header dynamically:
+     "Warpaints Fanatic", "Speedpaint 2.0", or "Warpaints Fanatic / Speedpaint 2.0" -->
 
 
 ## Steps
