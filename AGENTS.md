@@ -46,9 +46,13 @@ painting-recipes/
 ## Key Script Invocations
 
 ```bash
-# Fill equivalents and generate DOCX for a recipe
+# Fill equivalents and generate DOCX for a single recipe
 python scripts/fill_equivalents.py path/to/recipe.md
 python scripts/fill_equivalents.py path/to/recipe.md --force
+
+# Fill equivalents for all .md files in a folder (DOCX goes to sibling Printables/)
+python scripts/fill_equivalents.py /path/to/recipes/folder/
+python scripts/fill_equivalents.py /path/to/recipes/folder/ --force
 
 # Re-run Fanatic migration (e.g. after adding new paints to the conversion doc)
 python scripts/migrate_fanatic.py

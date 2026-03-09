@@ -11,7 +11,11 @@ Single file mode:
     python fill_equivalents.py <recipe.md>
     python fill_equivalents.py <recipe.md> --force
 
-Batch mode:
+Folder mode (process all .md files in a directory):
+    python fill_equivalents.py /path/to/recipes/
+    python fill_equivalents.py /path/to/recipes/ --force
+
+Batch mode (legacy flags):
     python fill_equivalents.py --recipes-dir ./Recipes --printables-dir ./Printables
     python fill_equivalents.py --recipes-dir ./Recipes --force
 """
@@ -550,7 +554,7 @@ def parse_recipe(lines: list) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def generate_docx(recipe: dict, output_path: Path) -> None:
+def generate_docx(recipe: dict, output_path: Path, verbose: bool = False) -> None:
     from docx import Document
     from docx.oxml import OxmlElement
     from docx.oxml.ns import qn
@@ -747,7 +751,8 @@ def generate_docx(recipe: dict, output_path: Path) -> None:
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     doc.save(str(output_path))
-    print(f"  DOCX saved: {output_path}")
+    if verbose:
+        print(f"  DOCX saved: {output_path}")
 
 
 # ---------------------------------------------------------------------------
@@ -764,7 +769,10 @@ def main():
     parser.add_argument(
         "recipe",
         nargs="?",
-        help="Path to a single recipe .md file (for single-file mode)",
+        help=(
+            "Path to a single recipe .md file, or a folder containing recipe "
+            ".md files (processes all .md files in the folder)"
+        ),
     )
     parser.add_argument(
         "--recipes-dir",
@@ -781,12 +789,27 @@ def main():
         action="store_true",
         help="Re-fill all rows, overwriting any existing equivalent values",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print detailed output (DOCX paths, row counts)",
+    )
     args = parser.parse_args()
 
     script_dir = Path(__file__).parent
     paints = load_paints(script_dir)
 
+    # Resolve batch target: positional folder arg takes precedence over --recipes-dir
+    batch_dir: Path | None = None
+    if args.recipe and Path(args.recipe).is_dir():
+        batch_dir = Path(args.recipe)
+    elif args.recipes_dir:
+        batch_dir = args.recipes_dir
+
     # Batch mode: process all recipes in a directory
+    if batch_dir:
+        args.recipes_dir = batch_dir  # normalise for the block below
+
     if args.recipes_dir:
         recipes_dir = args.recipes_dir
         if not recipes_dir.exists():
@@ -805,11 +828,8 @@ def main():
             print(f"No markdown files found in {recipes_dir}")
             sys.exit(0)
 
-        print(f"Recipes dir: {recipes_dir}")
-        print(f"Printables dir: {printables_dir}")
-        print(f"Found {len(recipe_files)} recipe(s)")
-        print(f"Force mode: {args.force}")
-        print("-" * 50)
+        force_note = " (force)" if args.force else ""
+        print(f"Processing {len(recipe_files)} recipe(s){force_note} → {printables_dir}")
 
         converted = 0
         skipped = 0
@@ -829,23 +849,29 @@ def main():
 
                 docx_path = printables_dir / (recipe_path.stem + ".docx")
                 recipe_data = parse_recipe(updated_lines)
-                generate_docx(recipe_data, docx_path)
+                generate_docx(recipe_data, docx_path, verbose=args.verbose)
 
-                action = "updated" if docx_path.exists() else "converted"
-                print(f"  [OK]    {recipe_path.name}: Rows filled: {rows_filled}, skipped: {rows_skipped}")
+                if args.verbose:
+                    print(f"  {recipe_path.name}: filled {rows_filled}, skipped {rows_skipped}")
+                else:
+                    print(f"  {recipe_path.name}")
                 converted += 1
 
             except Exception as e:
                 print(f"  [ERROR] {recipe_path.name}: {e}")
                 errors += 1
 
-        print("-" * 50)
-        print(f"Summary: {converted} converted, {skipped} skipped, {errors} errors")
+        parts = [f"{converted} done"]
+        if errors:
+            parts.append(f"{errors} errors")
+        print(f"Done. {', '.join(parts)}.")
         return
 
     # Single file mode
     if not args.recipe:
-        parser.error("Either provide a recipe file or use --recipes-dir for batch mode")
+        parser.error(
+            "Either provide a recipe file or folder, or use --recipes-dir for batch mode"
+        )
 
     recipe_path = Path(args.recipe)
     if not recipe_path.exists():
@@ -870,16 +896,18 @@ def main():
     with open(recipe_path, "w", encoding="utf-8") as f:
         f.writelines(updated_lines)
 
-    print(f"  Rows filled: {rows_filled}, rows skipped: {rows_skipped}")
+    if args.verbose:
+        print(f"  Rows filled: {rows_filled}, rows skipped: {rows_skipped}")
 
     # Derive DOCX path: sibling Printables/ directory relative to the recipe
     printables_dir = recipe_path.parent.parent / "Printables"
     docx_path = printables_dir / (recipe_path.stem + ".docx")
 
-    print(f"Generating DOCX: {docx_path}")
+    if args.verbose:
+        print(f"Generating DOCX: {docx_path}")
     try:
         recipe_data = parse_recipe(updated_lines)
-        generate_docx(recipe_data, docx_path)
+        generate_docx(recipe_data, docx_path, verbose=args.verbose)
     except ImportError:
         print(
             "Error: python-docx is not installed. Install with: pip install python-docx",
