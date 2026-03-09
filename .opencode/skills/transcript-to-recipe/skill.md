@@ -44,6 +44,22 @@ columns blank.**
 - If the source uses a brand not in this list, write the brand name as-is
   (e.g. `Liquitex`, `Contrast Medium`). The script will write "No equivalent"
   for unknown brands — this is correct behaviour.
+- Make an effort to identify garbled paint names in the transcripts and replace with correct paint names. 
+  - Examples:
+    - Corn Red -> Khorne Red
+    - Caribou Crimson -> Carroburg Crimson
+    - Thymian Camera -> Athonian Camoshade
+    - Rytland Fleshshade -> Reikland Fleshshade
+    - Korax White -> Corax White
+    - Avalon Sunset -> Averland Sunset
+    - Thanion Camo Shade -> Athonian Camo Shade
+    - Othonian Camo Shade -> Athonian Camo Shade
+    - Gore Grunter Fur -> Gore Grunta Fur
+    - Flesh Terror's Red -> Flesh Tearers Red
+    - Iondan Yellow -> Iyanden Yellow
+    - Iandian Yellow -> Iyanden Yellow
+    - Rust Grey → Russ Grey
+    - 
 
 **Special paint categories — write "No equivalent" in all three equivalent
 columns yourself for these (do not leave them blank):**
@@ -58,22 +74,6 @@ columns yourself for these (do not leave them blank):**
 - When the source material is focused on a particular miniature sculpt, make the
   recipe generic so the techniques apply to other sculpts. Do not include
   sculpt-specific build instructions.
-
----
-
-## After Generating the Markdown
-
-Once you have written the recipe `.md` file, tell the user:
-
-```
-Run the following to fill paint equivalents and generate the printable DOCX:
-
-    python scripts/fill_equivalents.py path/to/recipe.md
-
-To re-run and overwrite existing values:
-
-    python scripts/fill_equivalents.py path/to/recipe.md --force
-```
 
 ---
 
