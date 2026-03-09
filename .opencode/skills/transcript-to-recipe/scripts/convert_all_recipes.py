@@ -338,6 +338,21 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
                 result[i] = format_table_row(cells)
                 break
 
+    # If both fanatic and speedpaint, append (F) or (SP) to each paint name
+    if has_speedpaint and has_fanatic and wf_col_idx is not None:
+        for i, line in enumerate(result):
+            cells = parse_table_row(line)
+            if is_separator_row(cells):
+                continue
+            if cells and len(cells) >= table_columns and cells[0].lower() != "role":
+                wf_val = cells[wf_col_idx].strip() if cells[wf_col_idx] else ""
+                if wf_val and wf_val != NO_EQ:
+                    if is_speedpaint(wf_val, speedpaint_names):
+                        cells[wf_col_idx] = wf_val + " (SP)"
+                    else:
+                        cells[wf_col_idx] = wf_val + " (F)"
+                    result[i] = format_table_row(cells)
+
     return result, rows_filled, rows_skipped
 
 
