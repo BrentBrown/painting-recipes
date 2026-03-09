@@ -311,8 +311,11 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
 
     for line in result:
         cells = parse_table_row(line)
+        # Skip separator rows
+        if is_separator_row(cells):
+            continue
         if wf_col_idx and cells and len(cells) >= table_columns and cells[0].lower() != "role":
-            wf_val = cells[wf_col_idx]
+            wf_val = cells[wf_col_idx].strip() if cells[wf_col_idx] else ""
             if is_speedpaint(wf_val, speedpaint_names):
                 has_speedpaint = True
             elif wf_val and wf_val != NO_EQ:
