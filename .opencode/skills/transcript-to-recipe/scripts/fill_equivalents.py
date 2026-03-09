@@ -205,9 +205,33 @@ def format_table_row(cells: list) -> str:
     return "| " + " | ".join(cells) + " |\n"
 
 
+def is_header_row(cells: list) -> bool:
+    """Return True if this row is the header row (has 'role' in first cell)."""
+    return bool(cells) and len(cells) >= 6 and cells[0].lower() == "role"
+
+
 # ---------------------------------------------------------------------------
 # Core fill logic
 # ---------------------------------------------------------------------------
+
+# Speedpaint names for detection
+SPEEDPAINT_NAMES = None
+
+
+def get_speedpaint_names(paints: dict) -> set:
+    """Get set of all Speedpaint paint names for detection."""
+    global SPEEDPAINT_NAMES
+    if SPEEDPAINT_NAMES is None:
+        sp_table = paints.get("Army Painter Speedpaint", {})
+        SPEEDPAINT_NAMES = set(sp_table.keys())
+    return SPEEDPAINT_NAMES
+
+
+def is_speedpaint(paint_name: str, speedpaint_names: set) -> bool:
+    """Check if a paint name is a Speedpaint."""
+    if not paint_name or paint_name == NO_EQ:
+        return False
+    return paint_name in speedpaint_names
 
 
 def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
@@ -219,16 +243,19 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
     Idempotent: rows with all three equivalent columns already populated are
     skipped unless --force is given.
     """
+    speedpaint_names = get_speedpaint_names(paints)
+    wf_reverse = build_wf_reverse_lookup(paints)
+
+    # First: process everything normally
     result = []
     in_equiv_section = False
     header_seen = False
     rows_filled = 0
     rows_skipped = 0
-    warned_no_table = True  # flipped to False when section heading found
-    wf_reverse = build_wf_reverse_lookup(paints)
+    warned_no_table = True
+    header_line_idx = -1
 
     for i, line in enumerate(lines):
-        # Detect Paint Equivalents section
         if re.match(r"^##\s+Paint Equivalents", line.strip()):
             in_equiv_section = True
             header_seen = False
@@ -236,7 +263,6 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
             result.append(line)
             continue
 
-        # Leaving the section when another ## heading appears
         if in_equiv_section and re.match(r"^##\s+", line.strip()):
             in_equiv_section = False
 
@@ -244,27 +270,23 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
             result.append(line)
             continue
 
-        # --- Inside the Paint Equivalents section ---
         cells = parse_table_row(line)
 
-        # Non-table content (blank lines, etc.)
         if cells is None:
             result.append(line)
             continue
 
-        # Separator row — pass through unchanged
         if is_separator_row(cells):
             result.append(line)
             continue
 
-        # Header row: Role | Brand | Source Paint | Two Thin Coats | Citadel | Warpaints Fanatic
         if not header_seen:
             if len(cells) >= 6 and cells[0].lower() == "role":
                 header_seen = True
+                header_line_idx = len(result)
             result.append(line)
             continue
 
-        # Data rows require exactly 6 columns
         if len(cells) != 6:
             print(
                 f"  Warning: Line {i + 1} has {len(cells)} column(s) (expected 6), "
@@ -277,7 +299,6 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
 
         role, brand, source_paint, ttc_val, citadel_val, wf_val = cells
 
-        # Skip rows with no source paint or brand
         if not source_paint or not brand:
             result.append(line)
             continue
@@ -296,8 +317,36 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
         result.append(format_table_row(new_cells))
         rows_filled += 1
 
+    # Second: scan result to determine header based on wf column values
+    has_fanatic = False
+    has_speedpaint = False
+
+    for line in result:
+        cells = parse_table_row(line)
+        if cells and len(cells) >= 6 and cells[0].lower() != "role":
+            wf_val = cells[5]
+            if is_speedpaint(wf_val, speedpaint_names):
+                has_speedpaint = True
+            elif wf_val and wf_val != NO_EQ:
+                has_fanatic = True
+
+    # Determine header text
+    if has_speedpaint and has_fanatic:
+        new_header = "Warpaints Fanatic / Speedpaint 2.0"
+    elif has_speedpaint:
+        new_header = "Speedpaint 2.0"
+    else:
+        new_header = None  # Keep original header
+
+    # Update header only if we have Speedpaint (otherwise keep original)
+    if new_header and header_line_idx >= 0:
+        header_cells = parse_table_row(result[header_line_idx])
+        if header_cells and len(header_cells) >= 6:
+            header_cells[5] = new_header
+            result[header_line_idx] = format_table_row(header_cells)
+
     if not warned_no_table:
-        pass  # section was found — no warning needed
+        pass
     else:
         print(
             "  Warning: No '## Paint Equivalents' section found in the markdown file.",

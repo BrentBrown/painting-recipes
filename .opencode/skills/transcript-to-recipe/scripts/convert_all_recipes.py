@@ -141,6 +141,26 @@ def format_table_row(cells: list) -> str:
     return "| " + " | ".join(cells) + " |\n"
 
 
+# Speedpaint names for detection
+SPEEDPAINT_NAMES = None
+
+
+def get_speedpaint_names(paints: dict) -> set:
+    """Get set of all Speedpaint paint names for detection."""
+    global SPEEDPAINT_NAMES
+    if SPEEDPAINT_NAMES is None:
+        sp_table = paints.get("Army Painter Speedpaint", {})
+        SPEEDPAINT_NAMES = set(sp_table.keys())
+    return SPEEDPAINT_NAMES
+
+
+def is_speedpaint(paint_name: str, speedpaint_names: set) -> bool:
+    """Check if a paint name is a Speedpaint."""
+    if not paint_name or paint_name == NO_EQ:
+        return False
+    return paint_name in speedpaint_names
+
+
 def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
     result = []
     in_equiv_section = False
@@ -221,6 +241,37 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
 
         result.append(format_table_row(new_cells))
         rows_filled += 1
+
+    # Second: scan result to determine header based on wf column values
+    speedpaint_names = get_speedpaint_names(paints)
+    has_fanatic = False
+    has_speedpaint = False
+
+    for line in result:
+        cells = parse_table_row(line)
+        if cells and len(cells) >= 6 and cells[0].lower() != "role":
+            wf_val = cells[5]
+            if is_speedpaint(wf_val, speedpaint_names):
+                has_speedpaint = True
+            elif wf_val and wf_val != NO_EQ:
+                has_fanatic = True
+
+    # Determine header text
+    if has_speedpaint and has_fanatic:
+        new_header = "Warpaints Fanatic / Speedpaint 2.0"
+    elif has_speedpaint:
+        new_header = "Speedpaint 2.0"
+    else:
+        new_header = None  # Keep original header
+
+    # Update header only if we have Speedpaint (otherwise keep original)
+    if new_header and table_columns == 6 and header_seen:
+        for i, line in enumerate(result):
+            cells = parse_table_row(line)
+            if cells and len(cells) >= 6 and cells[0].lower() == "role":
+                cells[5] = new_header
+                result[i] = format_table_row(cells)
+                break
 
     return result, rows_filled, rows_skipped
 
