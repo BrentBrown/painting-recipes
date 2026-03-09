@@ -59,8 +59,14 @@ columns blank.**
     - Flesh Terror's Red -> Flesh Tearers Red
     - Iondan Yellow -> Iyanden Yellow
     - Iandian Yellow -> Iyanden Yellow
-    - Rust Grey → Russ Grey
-    - 
+    - Rust Grey -> Russ Grey
+    - Baden Black -> Abaddon Black
+    - Batten Black -> Abaddon Black
+    - Priscilla Karnan Grey -> Basilicanum Grey
+    - Bealtown Green -> Biel-Tan Green
+    - Beetle Tan Green -> Biel-Tan Green
+    - Alhambra Blizzard -> Valhallan Blizzard
+    - Van Halen Blizzard" -> Valhallan Blizzard
 
 **Special paint categories — write "No equivalent" in all three equivalent
 columns yourself for these (do not leave them blank):**
