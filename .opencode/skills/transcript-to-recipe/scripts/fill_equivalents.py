@@ -7,9 +7,13 @@ print-ready DOCX. Looks up each Source Paint by brand using paints.json,
 strips common paint name suffixes before matching, and writes the results
 back to the markdown file in-place.
 
-Usage:
+Single file mode:
     python fill_equivalents.py <recipe.md>
     python fill_equivalents.py <recipe.md> --force
+
+Batch mode:
+    python fill_equivalents.py --recipes-dir ./Recipes --printables-dir ./Printables
+    python fill_equivalents.py --recipes-dir ./Recipes --force
 """
 
 import argparse
@@ -43,6 +47,18 @@ def strip_suffixes(name: str) -> str:
             break
         stripped = new
     return stripped
+
+
+def strip_parenthetical(name: str) -> str:
+    """Strip trailing parenthetical notes like (contrast), (spray), (undiluted)."""
+    return re.sub(r"\s*\([^)]+\)\s*$", "", name).strip()
+
+
+def infer_brand_from_paint(source_paint: str) -> str | None:
+    """Infer brand for tables without a Brand column based on paint name hints."""
+    if "(contrast)" in source_paint.lower():
+        return "Citadel"
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -122,16 +138,11 @@ def lookup_equivalents(
                 return NO_EQ, NO_EQ, speedpaint
 
     if brand_table is None:
-        if brand in ("Citadel Contrast", "Army Painter Speedpaint"):
-            pass  # Allow these to fall through to the special handling below
-        else:
+        if brand not in ("Citadel Contrast", "Army Painter Speedpaint"):
             print(
                 f"  Warning: Unknown brand '{brand}' — writing '{NO_EQ}' for all columns.",
                 file=sys.stderr,
             )
-            return NO_EQ, NO_EQ, NO_EQ
-
-    if brand_table is None:
         return NO_EQ, NO_EQ, NO_EQ
 
     # Try stripped name first, then original as fallback
@@ -205,33 +216,33 @@ def format_table_row(cells: list) -> str:
     return "| " + " | ".join(cells) + " |\n"
 
 
-def is_header_row(cells: list) -> bool:
-    """Return True if this row is the header row (has 'role' in first cell)."""
-    return bool(cells) and len(cells) >= 6 and cells[0].lower() == "role"
-
-
 # ---------------------------------------------------------------------------
-# Core fill logic
+# Speedpaint detection
 # ---------------------------------------------------------------------------
 
-# Speedpaint names for detection
-SPEEDPAINT_NAMES = None
+SPEEDPAINT_NAMES: set | None = None
 
 
 def get_speedpaint_names(paints: dict) -> set:
     """Get set of all Speedpaint paint names for detection."""
     global SPEEDPAINT_NAMES
     if SPEEDPAINT_NAMES is None:
-        sp_table = paints.get("Army Painter Speedpaint", {})
-        SPEEDPAINT_NAMES = set(sp_table.keys())
+        SPEEDPAINT_NAMES = set(paints.get("Army Painter Speedpaint", {}).keys())
     return SPEEDPAINT_NAMES
 
 
 def is_speedpaint(paint_name: str, speedpaint_names: set) -> bool:
-    """Check if a paint name is a Speedpaint."""
+    """Check if a paint name (without suffix) is a Speedpaint."""
     if not paint_name or paint_name == NO_EQ:
         return False
-    return paint_name in speedpaint_names
+    # Strip (SP) or (F) annotation before checking
+    name = re.sub(r"\s*\((SP|F)\)$", "", paint_name).strip()
+    return name in speedpaint_names
+
+
+# ---------------------------------------------------------------------------
+# Core fill logic
+# ---------------------------------------------------------------------------
 
 
 def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
@@ -239,14 +250,21 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
     Process markdown lines, filling blank (or all-"No equivalent") paint
     equivalent cells using paints.json lookups.
 
+    Supports 4, 5, and 6-column Paint Equivalents tables:
+      6 col: Role | Brand | Source Paint | TTC | Citadel | WF/Speedpaint
+      5 col: Role | Source Paint | TTC | Citadel | WF/Speedpaint
+      4 col: Role | Source Paint | TTC | WF/Speedpaint
+
+    For 5 and 4-column tables without a Brand column, the brand is inferred
+    from paint name hints (e.g. "(contrast)" suffix → Citadel).
+
     Returns (updated_lines, rows_filled, rows_skipped).
-    Idempotent: rows with all three equivalent columns already populated are
-    skipped unless --force is given.
+    Idempotent: rows with all equivalent columns already populated are skipped
+    unless --force is given.
     """
     speedpaint_names = get_speedpaint_names(paints)
     wf_reverse = build_wf_reverse_lookup(paints)
 
-    # First: process everything normally
     result = []
     in_equiv_section = False
     header_seen = False
@@ -254,12 +272,14 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
     rows_skipped = 0
     warned_no_table = True
     header_line_idx = -1
+    table_columns = 0
 
     for i, line in enumerate(lines):
         if re.match(r"^##\s+Paint Equivalents", line.strip()):
             in_equiv_section = True
             header_seen = False
             warned_no_table = False
+            table_columns = 0
             result.append(line)
             continue
 
@@ -280,16 +300,18 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
             result.append(line)
             continue
 
+        # Header row
         if not header_seen:
-            if len(cells) >= 6 and cells[0].lower() == "role":
+            if len(cells) >= 4 and cells[0].lower() == "role":
                 header_seen = True
+                table_columns = len(cells)
                 header_line_idx = len(result)
             result.append(line)
             continue
 
-        if len(cells) != 6:
+        if len(cells) != table_columns:
             print(
-                f"  Warning: Line {i + 1} has {len(cells)} column(s) (expected 6), "
+                f"  Warning: Line {i + 1} has {len(cells)} column(s) (expected {table_columns}), "
                 f"skipping: {line.rstrip()}",
                 file=sys.stderr,
             )
@@ -297,13 +319,34 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
             rows_skipped += 1
             continue
 
-        role, brand, source_paint, ttc_val, citadel_val, wf_val = cells
+        # Unpack based on column count
+        if table_columns == 6:
+            role, brand, source_paint, ttc_val, citadel_val, wf_val = cells
+        elif table_columns == 5:
+            role, source_paint, ttc_val, citadel_val, wf_val = cells
+            brand = ""
+        elif table_columns == 4:
+            role, source_paint, ttc_val, wf_val = cells
+            brand = ""
+            citadel_val = ""
+        else:
+            result.append(line)
+            rows_skipped += 1
+            continue
+
+        # For brandless tables, infer brand from paint name hints
+        if not brand and table_columns in (4, 5):
+            clean_paint = strip_parenthetical(source_paint)
+            inferred = infer_brand_from_paint(source_paint)
+            if inferred:
+                brand = inferred
+                source_paint = clean_paint
 
         if not source_paint or not brand:
             result.append(line)
             continue
 
-        all_filled = bool(ttc_val and citadel_val and wf_val)
+        all_filled = bool(ttc_val and wf_val and (table_columns < 5 or citadel_val))
 
         if all_filled and not force:
             rows_skipped += 1
@@ -313,41 +356,78 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
         ttc_new, citadel_new, wf_new = lookup_equivalents(
             brand, source_paint, paints, wf_reverse
         )
-        new_cells = [role, brand, source_paint, ttc_new, citadel_new, wf_new]
+
+        if table_columns == 6:
+            new_cells = [role, brand, source_paint, ttc_new, citadel_new, wf_new]
+        elif table_columns == 5:
+            new_cells = [role, source_paint, ttc_new, citadel_new, wf_new]
+        elif table_columns == 4:
+            new_cells = [role, source_paint, ttc_new, wf_new]
+        else:
+            result.append(line)
+            continue
+
         result.append(format_table_row(new_cells))
         rows_filled += 1
 
-    # Second: scan result to determine header based on wf column values
+    # --- Determine WF column index ---
+    if table_columns == 6:
+        wf_col_idx: int | None = 5
+    elif table_columns == 5:
+        wf_col_idx = 4
+    elif table_columns == 4:
+        wf_col_idx = 3
+    else:
+        wf_col_idx = None
+
+    # --- Scan result to classify WF column values ---
     has_fanatic = False
     has_speedpaint = False
 
-    for line in result:
-        cells = parse_table_row(line)
-        if cells and len(cells) >= 6 and cells[0].lower() != "role":
-            wf_val = cells[5]
-            if is_speedpaint(wf_val, speedpaint_names):
-                has_speedpaint = True
-            elif wf_val and wf_val != NO_EQ:
-                has_fanatic = True
+    if wf_col_idx is not None:
+        for line in result:
+            cells = parse_table_row(line)
+            if not cells or is_separator_row(cells):
+                continue
+            if len(cells) >= table_columns and cells[0].lower() != "role":
+                raw = cells[wf_col_idx].strip() if cells[wf_col_idx] else ""
+                # Strip any existing annotation before classifying
+                wf_val = re.sub(r"\s*\((SP|F)\)$", "", raw).strip()
+                if is_speedpaint(wf_val, speedpaint_names):
+                    has_speedpaint = True
+                elif wf_val and wf_val != NO_EQ:
+                    has_fanatic = True
 
-    # Determine header text
+    # --- Update header label ---
     if has_speedpaint and has_fanatic:
         new_header = "Warpaints Fanatic / Speedpaint 2.0"
     elif has_speedpaint:
         new_header = "Speedpaint 2.0"
     else:
-        new_header = None  # Keep original header
+        new_header = None  # keep original
 
-    # Update header only if we have Speedpaint (otherwise keep original)
-    if new_header and header_line_idx >= 0:
-        header_cells = parse_table_row(result[header_line_idx])
-        if header_cells and len(header_cells) >= 6:
-            header_cells[5] = new_header
-            result[header_line_idx] = format_table_row(header_cells)
+    if new_header and header_line_idx >= 0 and wf_col_idx is not None:
+        hdr_cells = parse_table_row(result[header_line_idx])
+        if hdr_cells and len(hdr_cells) > wf_col_idx:
+            hdr_cells[wf_col_idx] = new_header
+            result[header_line_idx] = format_table_row(hdr_cells)
 
-    if not warned_no_table:
-        pass
-    else:
+    # --- Annotate with (F) / (SP) when both types are present ---
+    if has_fanatic and has_speedpaint and wf_col_idx is not None:
+        for i, line in enumerate(result):
+            cells = parse_table_row(line)
+            if not cells or is_separator_row(cells):
+                continue
+            if len(cells) >= table_columns and cells[0].lower() != "role":
+                raw = cells[wf_col_idx].strip() if cells[wf_col_idx] else ""
+                # Strip existing annotation before re-annotating
+                wf_val = re.sub(r"\s*\((SP|F)\)$", "", raw).strip()
+                if wf_val and wf_val != NO_EQ:
+                    suffix = " (SP)" if is_speedpaint(wf_val, speedpaint_names) else " (F)"
+                    cells[wf_col_idx] = wf_val + suffix
+                    result[i] = format_table_row(cells)
+
+    if warned_no_table:
         print(
             "  Warning: No '## Paint Equivalents' section found in the markdown file.",
             file=sys.stderr,
@@ -430,22 +510,34 @@ def parse_recipe(lines: list) -> dict:
         # Accumulate content per section
         if current_section == "equivalents":
             cells = parse_table_row(s)
-            if (
-                cells
-                and len(cells) >= 6
-                and not is_separator_row(cells)
-                and cells[0].lower() != "role"
-            ):
-                recipe["equivalents"].append(
-                    {
+            if cells and len(cells) >= 4 and not is_separator_row(cells) and cells[0].lower() != "role":
+                if len(cells) == 6:
+                    recipe["equivalents"].append({
                         "role": cells[0],
                         "brand": cells[1],
                         "source_paint": cells[2],
                         "ttc": cells[3],
                         "citadel": cells[4],
                         "warpaints_fanatic": cells[5],
-                    }
-                )
+                    })
+                elif len(cells) == 5:
+                    recipe["equivalents"].append({
+                        "role": cells[0],
+                        "brand": "",
+                        "source_paint": cells[1],
+                        "ttc": cells[2],
+                        "citadel": cells[3],
+                        "warpaints_fanatic": cells[4],
+                    })
+                elif len(cells) == 4:
+                    recipe["equivalents"].append({
+                        "role": cells[0],
+                        "brand": "",
+                        "source_paint": cells[1],
+                        "ttc": cells[2],
+                        "citadel": "",
+                        "warpaints_fanatic": cells[3],
+                    })
         elif current_section and current_section != "equivalents":
             if s and not s.startswith("|") and not s.startswith("#"):
                 recipe[current_section].append(s)
@@ -666,16 +758,94 @@ def generate_docx(recipe: dict, output_path: Path) -> None:
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "Fill paint equivalents in a recipe markdown file and generate a DOCX."
+            "Fill paint equivalents in recipe markdown file(s) and generate DOCX."
         )
     )
-    parser.add_argument("recipe", help="Path to the recipe .md file")
+    parser.add_argument(
+        "recipe",
+        nargs="?",
+        help="Path to a single recipe .md file (for single-file mode)",
+    )
+    parser.add_argument(
+        "--recipes-dir",
+        type=Path,
+        help="Directory containing recipe markdown files (for batch mode)",
+    )
+    parser.add_argument(
+        "--printables-dir",
+        type=Path,
+        help="Directory for output DOCX files (used with --recipes-dir)",
+    )
     parser.add_argument(
         "--force",
         action="store_true",
         help="Re-fill all rows, overwriting any existing equivalent values",
     )
     args = parser.parse_args()
+
+    script_dir = Path(__file__).parent
+    paints = load_paints(script_dir)
+
+    # Batch mode: process all recipes in a directory
+    if args.recipes_dir:
+        recipes_dir = args.recipes_dir
+        if not recipes_dir.exists():
+            print(f"Error: Recipes directory not found: {recipes_dir}", file=sys.stderr)
+            sys.exit(1)
+        if not recipes_dir.is_dir():
+            print(f"Error: Not a directory: {recipes_dir}", file=sys.stderr)
+            sys.exit(1)
+
+        printables_dir = args.printables_dir if args.printables_dir else recipes_dir.parent / "Printables"
+        printables_dir.mkdir(parents=True, exist_ok=True)
+
+        recipe_files = sorted(recipes_dir.glob("*.md"))
+
+        if not recipe_files:
+            print(f"No markdown files found in {recipes_dir}")
+            sys.exit(0)
+
+        print(f"Recipes dir: {recipes_dir}")
+        print(f"Printables dir: {printables_dir}")
+        print(f"Found {len(recipe_files)} recipe(s)")
+        print(f"Force mode: {args.force}")
+        print("-" * 50)
+
+        converted = 0
+        skipped = 0
+        errors = 0
+
+        for recipe_path in recipe_files:
+            try:
+                with open(recipe_path, "r", encoding="utf-8") as f:
+                    lines = f.readlines()
+
+                updated_lines, rows_filled, rows_skipped = fill_equivalents(
+                    lines, paints, args.force
+                )
+
+                with open(recipe_path, "w", encoding="utf-8") as f:
+                    f.writelines(updated_lines)
+
+                docx_path = printables_dir / (recipe_path.stem + ".docx")
+                recipe_data = parse_recipe(updated_lines)
+                generate_docx(recipe_data, docx_path)
+
+                action = "updated" if docx_path.exists() else "converted"
+                print(f"  [OK]    {recipe_path.name}: Rows filled: {rows_filled}, skipped: {rows_skipped}")
+                converted += 1
+
+            except Exception as e:
+                print(f"  [ERROR] {recipe_path.name}: {e}")
+                errors += 1
+
+        print("-" * 50)
+        print(f"Summary: {converted} converted, {skipped} skipped, {errors} errors")
+        return
+
+    # Single file mode
+    if not args.recipe:
+        parser.error("Either provide a recipe file or use --recipes-dir for batch mode")
 
     recipe_path = Path(args.recipe)
     if not recipe_path.exists():
@@ -686,9 +856,6 @@ def main():
             f"Warning: Expected a .md file, got: {recipe_path.suffix}",
             file=sys.stderr,
         )
-
-    script_dir = Path(__file__).parent
-    paints = load_paints(script_dir)
 
     print(f"Processing: {recipe_path}")
 
