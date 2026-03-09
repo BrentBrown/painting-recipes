@@ -104,15 +104,34 @@ def lookup_equivalents(
 
     For Citadel Contrast and Army Painter Speedpaint, the Warpaints Fanatic
     column shows the cross-brand equivalent (Speedpaint or Citadel Contrast).
+
+    When brand is "Citadel", also checks "Citadel Contrast" for Contrast paint
+    mappings.
     """
     stripped = strip_suffixes(source_paint)
 
     brand_table = paints.get(brand)
+
+    # --- Special handling: Check Citadel Contrast when brand is Citadel ---
+    if brand == "Citadel":
+        contrast_table = paints.get("Citadel Contrast")
+        if contrast_table:
+            contrast_entry = contrast_table.get(stripped) or contrast_table.get(source_paint.strip())
+            if contrast_entry:
+                speedpaint = contrast_entry.get("speedpaint", NO_EQ)
+                return NO_EQ, NO_EQ, speedpaint
+
     if brand_table is None:
-        print(
-            f"  Warning: Unknown brand '{brand}' — writing '{NO_EQ}' for all columns.",
-            file=sys.stderr,
-        )
+        if brand in ("Citadel Contrast", "Army Painter Speedpaint"):
+            pass  # Allow these to fall through to the special handling below
+        else:
+            print(
+                f"  Warning: Unknown brand '{brand}' — writing '{NO_EQ}' for all columns.",
+                file=sys.stderr,
+            )
+            return NO_EQ, NO_EQ, NO_EQ
+
+    if brand_table is None:
         return NO_EQ, NO_EQ, NO_EQ
 
     # Try stripped name first, then original as fallback

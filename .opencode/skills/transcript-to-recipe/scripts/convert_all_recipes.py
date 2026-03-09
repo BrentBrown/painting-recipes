@@ -69,6 +69,16 @@ def lookup_equivalents(
     stripped = strip_suffixes(source_paint)
 
     brand_table = paints.get(brand)
+
+    # --- Special handling: Check Citadel Contrast when brand is Citadel ---
+    if brand == "Citadel":
+        contrast_table = paints.get("Citadel Contrast")
+        if contrast_table:
+            contrast_entry = contrast_table.get(stripped) or contrast_table.get(source_paint.strip())
+            if contrast_entry:
+                speedpaint = contrast_entry.get("speedpaint", NO_EQ)
+                return NO_EQ, NO_EQ, speedpaint
+
     if brand_table is None:
         return NO_EQ, NO_EQ, NO_EQ
 
