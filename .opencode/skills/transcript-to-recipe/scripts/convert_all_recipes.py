@@ -36,6 +36,14 @@ def strip_suffixes(name: str) -> str:
     return stripped
 
 
+def strip_contrast_suffix(name: str) -> str:
+    """Strip parenthetical suffixes like (contrast), (contrast, undiluted), etc."""
+    import re
+    # Remove (contrast), (contrast, undiluted), (paint), (spray), etc.
+    pattern = r'\s*\([^)]+\)\s*$'
+    return re.sub(pattern, '', name).strip()
+
+
 def load_paints(script_dir: Path) -> dict:
     paints_path = script_dir / "paints.json"
     if not paints_path.exists():
@@ -161,6 +169,33 @@ def is_speedpaint(paint_name: str, speedpaint_names: set) -> bool:
     return paint_name in speedpaint_names
 
 
+# Cache for known Citadel Contrast paints
+CITADEL_CONTRAST_NAMES = None
+
+
+def get_citadel_contrast_names(paints: dict) -> set:
+    """Get set of all Citadel Contrast paint names for detection."""
+    global CITADEL_CONTRAST_NAMES
+    if CITADEL_CONTRAST_NAMES is None:
+        cc_table = paints.get("Citadel Contrast", {})
+        CITADEL_CONTRAST_NAMES = set(cc_table.keys())
+    return CITADEL_CONTRAST_NAMES
+
+
+def infer_brand_from_paint(source_paint: str) -> str:
+    """Infer brand from paint name for tables without a Brand column."""
+    if not source_paint:
+        return None
+    
+    paint_lower = source_paint.lower()
+    
+    # Check for "(contrast)" suffix
+    if "(contrast)" in paint_lower:
+        return "Citadel"
+    
+    return None
+
+
 def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
     result = []
     in_equiv_section = False
@@ -214,14 +249,27 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
         elif table_columns == 5:
             role, source_paint, ttc_val, citadel_val, wf_val = cells
             brand = ""
+        elif table_columns == 4:
+            role, source_paint, ttc_val, wf_val = cells
+            brand = ""
+            citadel_val = ""
         else:
             result.append(line)
             rows_skipped += 1
             continue
 
         if not source_paint or not brand:
-            result.append(line)
-            continue
+            # For 5-column tables, try to infer brand from paint name
+            if table_columns in (5, 4):
+                # First strip parenthetical suffixes like (contrast), (spray), etc.
+                clean_paint = strip_contrast_suffix(source_paint)
+                inferred_brand = infer_brand_from_paint(source_paint)
+                if inferred_brand:
+                    brand = inferred_brand
+                    source_paint = clean_paint
+            if not source_paint or not brand:
+                result.append(line)
+                continue
 
         all_filled = bool(ttc_val and citadel_val and wf_val)
 
@@ -236,8 +284,13 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
 
         if table_columns == 6:
             new_cells = [role, brand, source_paint, ttc_new, citadel_new, wf_new]
-        else:
+        elif table_columns == 5:
             new_cells = [role, source_paint, ttc_new, citadel_new, wf_new]
+        elif table_columns == 4:
+            new_cells = [role, source_paint, ttc_new, wf_new]
+        else:
+            result.append(line)
+            continue
 
         result.append(format_table_row(new_cells))
         rows_filled += 1
@@ -246,11 +299,20 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
     speedpaint_names = get_speedpaint_names(paints)
     has_fanatic = False
     has_speedpaint = False
+    # wf column index: 6-col=5, 5-col=4, 4-col=3
+    if table_columns == 6:
+        wf_col_idx = 5
+    elif table_columns == 5:
+        wf_col_idx = 4
+    elif table_columns == 4:
+        wf_col_idx = 3
+    else:
+        wf_col_idx = None
 
     for line in result:
         cells = parse_table_row(line)
-        if cells and len(cells) >= 6 and cells[0].lower() != "role":
-            wf_val = cells[5]
+        if wf_col_idx and cells and len(cells) >= table_columns and cells[0].lower() != "role":
+            wf_val = cells[wf_col_idx]
             if is_speedpaint(wf_val, speedpaint_names):
                 has_speedpaint = True
             elif wf_val and wf_val != NO_EQ:
@@ -264,12 +326,12 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
     else:
         new_header = None  # Keep original header
 
-    # Update header only if we have Speedpaint (otherwise keep original)
-    if new_header and table_columns == 6 and header_seen:
+    # Update header if we have Speedpaint
+    if new_header and header_seen and wf_col_idx is not None:
         for i, line in enumerate(result):
             cells = parse_table_row(line)
-            if cells and len(cells) >= 6 and cells[0].lower() == "role":
-                cells[5] = new_header
+            if cells and len(cells) >= table_columns and cells[0].lower() == "role":
+                cells[wf_col_idx] = new_header
                 result[i] = format_table_row(cells)
                 break
 
