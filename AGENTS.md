@@ -12,6 +12,8 @@ Maintain and extend a miniature painting recipe library stored in Obsidian. The 
 - Paint lookups must be **deterministic** — the LLM identifies and normalises paint names, a Python script does all table lookups. The LLM never invents TTC paint names.
 - Brand names in the recipe `Brand` column must use **exact canonical strings** so the script can look them up in `paints.json`.
 - For **Warpaints Fanatic** source recipes, the `Army Painter` column shows the **Original Warpaints (classic line) equivalent**, not the Fanatic paint itself.
+- **Citadel Contrast** and **Army Painter Speedpaint 2.0** map only to each other — never to TTC, Citadel base/layer, or Warpaints Fanatic.
+- The WF column header is dynamic: "Warpaints Fanatic" (only WF), "Speedpaint 2.0" (only SP), or "Warpaints Fanatic / Speedpaint 2.0" (both). Append **(F)** / **(SP)** suffixes only when both types appear in the same column.
 - Special categories (oils, enamels, Daler-Rowney FW Inks, other inks, Vallejo Metal Color) must have `"No equivalent"` written by the LLM directly — not left blank.
 - Airbrush steps must be converted to brush technique equivalents.
 - Recipes must be generic (not sculpt-specific).
@@ -31,11 +33,12 @@ painting-recipes/
         └── transcript-to-recipe/
             ├── skill.md                # LLM skill prompt
             └── scripts/
-                ├── paints.json         # 462 paints across 8 brands
-                ├── fill_equivalents.py # fills MD table + generates DOCX
+                ├── paints.json         # paints across 10 brands (incl. Citadel Contrast + Speedpaint 2.0)
+                ├── fill_equivalents.py # fills MD table + generates DOCX (single-file and batch modes)
                 ├── migrate_fanatic.py  # one-time migration script (keep for reference)
                 └── docs/
-                    └── warpaints_fanatic_conversion.md
+                    ├── warpaints_fanatic_conversion.md
+                    └── contrast_to_speedpaint_conversion_chart.csv
 ```
 
 ---
@@ -57,4 +60,4 @@ python scripts/migrate_fanatic.py
 
 Must match exactly in the recipe `Brand` column:
 
-`Citadel`, `Vallejo Game Color`, `Vallejo Model Color`, `Scale 75`, `Reaper`, `P3`, `Two Thin Coats`, `Warpaints Fanatic`
+`Citadel`, `Vallejo Game Color`, `Vallejo Model Color`, `Scale 75`, `Reaper`, `P3`, `Two Thin Coats`, `Warpaints Fanatic`, `Citadel Contrast`, `Army Painter Speedpaint`

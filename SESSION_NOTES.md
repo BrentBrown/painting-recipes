@@ -1,5 +1,33 @@
 # Session Notes
 
+## Session 2
+
+### Discoveries
+
+- Existing recipes use **mixed table formats** (4-, 5-, and 6-column). The 6-column format has a Brand column; older formats do not.
+- Some older recipes use parenthetical hints like `Black Templar (contrast)` — the `(contrast)` suffix needs to be stripped before lookup and the brand inferred as "Citadel Contrast".
+- Citadel Contrast paints are stored in `paints.json` under `"Citadel Contrast"` with a `speedpaint` field; Speedpaints are stored under `"Army Painter Speedpaint"` with a `citadel_contrast` field. These two brands map only to each other.
+- Warpaints Fanatic entries have an `army_painter` field pointing to the **original Warpaints (classic line)** equivalent — distinct from Speedpaint.
+- When scanning result rows to classify the WF column header, separator rows (e.g. `|---|---|`) must be skipped to avoid false positives.
+- `convert_all_recipes.py` was a separate batch script; its functionality has been merged into `fill_equivalents.py`.
+
+### Accomplished
+
+1. Added `Citadel Contrast` (47 paints) and `Army Painter Speedpaint` (43 paints) brand blocks to `paints.json`, sourced from `contrast_to_speedpaint_conversion_chart.csv`.
+2. Cleaned `contrast_to_speedpaint_conversion_chart.csv`: snake_case headers, replaced "No Match" with "No equivalent", removed comments.
+3. Updated `fill_equivalents.py` to:
+   - Look up Citadel Contrast when brand is "Citadel" and the paint matches a Contrast entry.
+   - Infer brand from `(contrast)` suffix in brandless tables.
+   - Strip parenthetical suffixes before lookup.
+   - Support 4-, 5-, and 6-column table formats.
+   - Dynamically set the WF column header based on column contents.
+   - Annotate paint names with **(F)** / **(SP)** when both Fanatic and Speedpaint entries appear in the same column.
+   - Skip separator rows during header classification.
+4. Merged batch-mode functionality from `convert_all_recipes.py` into `fill_equivalents.py`; deleted `convert_all_recipes.py`.
+5. Ran `fill_equivalents.py --force` on all 138 recipes successfully (0 errors).
+
+---
+
 ## Session 1
 
 ### Discoveries
