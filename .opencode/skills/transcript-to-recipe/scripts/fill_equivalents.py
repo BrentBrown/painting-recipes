@@ -62,6 +62,9 @@ def infer_brand_from_paint(source_paint: str) -> str | None:
     """Infer brand for tables without a Brand column based on paint name hints."""
     if "(contrast)" in source_paint.lower():
         return "Citadel"
+    # Wyldwood is a Citadel Contrast paint
+    if source_paint.strip().lower() == "wyldwood":
+        return "Citadel"
     return None
 
 
