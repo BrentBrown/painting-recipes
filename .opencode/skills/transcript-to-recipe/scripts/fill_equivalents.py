@@ -184,7 +184,8 @@ def lookup_equivalents(
         paint_base = strip_spray_suffix(source_paint)
         primer = spray_primer_lookup.get(paint_base)
         if primer:
-            return primer, primer, NO_EQ
+            # TTC gets primer, Citadel keeps original source, WF gets primer
+            return primer, source_paint.strip(), primer
 
     if brand_table is None:
         if brand not in ("Citadel Contrast", "Army Painter Speedpaint"):
