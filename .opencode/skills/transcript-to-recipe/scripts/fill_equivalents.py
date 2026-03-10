@@ -65,6 +65,9 @@ def infer_brand_from_paint(source_paint: str) -> str | None:
     # Wyldwood is a Citadel Contrast paint
     if source_paint.strip().lower() == "wyldwood":
         return "Citadel"
+    # Wraithbone spray is a Citadel spray primer
+    if source_paint.strip().lower() in ("wraithbone", "wraithbone spray"):
+        return "Citadel"
     return None
 
 
@@ -490,6 +493,9 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
                 if wf_val and wf_val != NO_EQ:
                     # Skip generic primer names - they don't get (F) or (SP) suffix
                     if wf_val in spray_primer_names:
+                        continue
+                    # Skip if value contains "No equivalent" (failed lookup)
+                    if "No equivalent" in wf_val:
                         continue
                     suffix = (
                         " (SP)" if is_speedpaint(wf_val, speedpaint_names) else " (F)"
