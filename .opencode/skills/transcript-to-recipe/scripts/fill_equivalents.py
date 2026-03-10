@@ -123,6 +123,12 @@ def strip_spray_suffix(name: str) -> str:
     return name
 
 
+def get_spray_primer_names(paints: dict) -> set:
+    """Get set of all generic spray primer names."""
+    spray_table = paints.get("Spray Primers", {})
+    return set(spray_table.keys())
+
+
 # ---------------------------------------------------------------------------
 # Lookup logic
 # ---------------------------------------------------------------------------
@@ -322,6 +328,7 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
     speedpaint_names = get_speedpaint_names(paints)
     wf_reverse = build_wf_reverse_lookup(paints)
     spray_primer_lookup = build_spray_primer_lookup(paints)
+    spray_primer_names = get_spray_primer_names(paints)
 
     result = []
     in_equiv_section = False
@@ -481,6 +488,9 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
                 # Strip existing annotation before re-annotating
                 wf_val = re.sub(r"\s*\((SP|F)\)$", "", raw).strip()
                 if wf_val and wf_val != NO_EQ:
+                    # Skip generic primer names - they don't get (F) or (SP) suffix
+                    if wf_val in spray_primer_names:
+                        continue
                     suffix = (
                         " (SP)" if is_speedpaint(wf_val, speedpaint_names) else " (F)"
                     )
