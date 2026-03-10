@@ -52,21 +52,30 @@ columns blank.**
     - Thymian Camera -> Athonian Camoshade
     - Rytland Fleshshade -> Reikland Fleshshade
     - Korax White -> Corax White
+    - Alhambra Blizzard -> Valhallan Blizzard
     - Avalon Sunset -> Averland Sunset
-    - Thanion Camo Shade -> Athonian Camo Shade
-    - Othonian Camo Shade -> Athonian Camo Shade
-    - Gore Grunter Fur -> Gore Grunta Fur
-    - Flesh Terror's Red -> Flesh Tearers Red
-    - Iondan Yellow -> Iyanden Yellow
-    - Iandian Yellow -> Iyanden Yellow
-    - Rust Grey -> Russ Grey
     - Baden Black -> Abaddon Black
     - Batten Black -> Abaddon Black
-    - Priscilla Karnan Grey -> Basilicanum Grey
     - Bealtown Green -> Biel-Tan Green
     - Beetle Tan Green -> Biel-Tan Green
-    - Alhambra Blizzard -> Valhallan Blizzard
+    - Druki -> Druchii Violet
+    - Drookie Violet -> Druchii Violet
+    - Evils Scarlet -> Evil Sunz Scarlet
+    - Evilsons Scarlet -> Evil Sunz Scarlet
+    - Flesh Terror's Red -> Flesh Tearers Red
+    - Gore Grunter Fur -> Gore Grunta Fur
+    - Iandian Yellow -> Iyanden Yellow
+    - Iondan Yellow -> Iyanden Yellow
+    - Othonian Camo Shade -> Athonian Camo Shade
+    - Priscilla Karnan Grey -> Basilicanum Grey
+    - Retrobuterama -> Retributor Armour
+    - Retributerama -> Retributor Armour
+    - Rust Grey -> Russ Grey
+    - Shabti Bone -> Ushabti Bone
+    - Shabty Bone -> Ushabti Bone
+    - Thanion Camo Shade -> Athonian Camo Shade
     - Van Halen Blizzard" -> Valhallan Blizzard
+    - Wazdaka Red -> Wazdakka Red
 
 **Special paint categories — write "No equivalent" in all three equivalent
 columns yourself for these (do not leave them blank):**
