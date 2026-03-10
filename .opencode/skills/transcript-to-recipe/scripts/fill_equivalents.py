@@ -178,6 +178,13 @@ def lookup_equivalents(
             if contrast_entry:
                 speedpaint = contrast_entry.get("speedpaint", NO_EQ)
                 return NO_EQ, NO_EQ, speedpaint
+        # Also check Citadel table for speedpaint field (e.g. Lahmian Medium)
+        if brand_table:
+            citadel_entry = brand_table.get(stripped) or brand_table.get(source_paint.strip())
+            if citadel_entry:
+                speedpaint = citadel_entry.get("speedpaint")
+                if speedpaint:
+                    return NO_EQ, source_paint.strip(), speedpaint
 
     # --- Special handling: Spray primers ---
     if is_spray_paint(source_paint):
