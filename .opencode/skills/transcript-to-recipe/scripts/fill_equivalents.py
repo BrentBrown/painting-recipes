@@ -136,7 +136,9 @@ def lookup_equivalents(
     if brand == "Citadel":
         contrast_table = paints.get("Citadel Contrast")
         if contrast_table:
-            contrast_entry = contrast_table.get(stripped) or contrast_table.get(source_paint.strip())
+            contrast_entry = contrast_table.get(stripped) or contrast_table.get(
+                source_paint.strip()
+            )
             if contrast_entry:
                 speedpaint = contrast_entry.get("speedpaint", NO_EQ)
                 return NO_EQ, NO_EQ, speedpaint
@@ -427,7 +429,9 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
                 # Strip existing annotation before re-annotating
                 wf_val = re.sub(r"\s*\((SP|F)\)$", "", raw).strip()
                 if wf_val and wf_val != NO_EQ:
-                    suffix = " (SP)" if is_speedpaint(wf_val, speedpaint_names) else " (F)"
+                    suffix = (
+                        " (SP)" if is_speedpaint(wf_val, speedpaint_names) else " (F)"
+                    )
                     cells[wf_col_idx] = wf_val + suffix
                     result[i] = format_table_row(cells)
 
@@ -514,34 +518,45 @@ def parse_recipe(lines: list) -> dict:
         # Accumulate content per section
         if current_section == "equivalents":
             cells = parse_table_row(s)
-            if cells and len(cells) >= 4 and not is_separator_row(cells) and cells[0].lower() != "role":
+            if (
+                cells
+                and len(cells) >= 4
+                and not is_separator_row(cells)
+                and cells[0].lower() != "role"
+            ):
                 if len(cells) == 6:
-                    recipe["equivalents"].append({
-                        "role": cells[0],
-                        "brand": cells[1],
-                        "source_paint": cells[2],
-                        "ttc": cells[3],
-                        "citadel": cells[4],
-                        "warpaints_fanatic": cells[5],
-                    })
+                    recipe["equivalents"].append(
+                        {
+                            "role": cells[0],
+                            "brand": cells[1],
+                            "source_paint": cells[2],
+                            "ttc": cells[3],
+                            "citadel": cells[4],
+                            "warpaints_fanatic": cells[5],
+                        }
+                    )
                 elif len(cells) == 5:
-                    recipe["equivalents"].append({
-                        "role": cells[0],
-                        "brand": "",
-                        "source_paint": cells[1],
-                        "ttc": cells[2],
-                        "citadel": cells[3],
-                        "warpaints_fanatic": cells[4],
-                    })
+                    recipe["equivalents"].append(
+                        {
+                            "role": cells[0],
+                            "brand": "",
+                            "source_paint": cells[1],
+                            "ttc": cells[2],
+                            "citadel": cells[3],
+                            "warpaints_fanatic": cells[4],
+                        }
+                    )
                 elif len(cells) == 4:
-                    recipe["equivalents"].append({
-                        "role": cells[0],
-                        "brand": "",
-                        "source_paint": cells[1],
-                        "ttc": cells[2],
-                        "citadel": "",
-                        "warpaints_fanatic": cells[3],
-                    })
+                    recipe["equivalents"].append(
+                        {
+                            "role": cells[0],
+                            "brand": "",
+                            "source_paint": cells[1],
+                            "ttc": cells[2],
+                            "citadel": "",
+                            "warpaints_fanatic": cells[3],
+                        }
+                    )
         elif current_section and current_section != "equivalents":
             if s and not s.startswith("|") and not s.startswith("#"):
                 recipe[current_section].append(s)
@@ -819,7 +834,11 @@ def main():
             print(f"Error: Not a directory: {recipes_dir}", file=sys.stderr)
             sys.exit(1)
 
-        printables_dir = args.printables_dir if args.printables_dir else recipes_dir.parent / "Printables"
+        printables_dir = (
+            args.printables_dir
+            if args.printables_dir
+            else recipes_dir.parent / "Printables"
+        )
         printables_dir.mkdir(parents=True, exist_ok=True)
 
         recipe_files = sorted(recipes_dir.glob("*.md"))
@@ -829,10 +848,12 @@ def main():
             sys.exit(0)
 
         force_note = " (force)" if args.force else ""
-        print(f"Processing {len(recipe_files)} recipe(s){force_note} → {printables_dir}")
+        print(
+            f"Processing {len(recipe_files)} recipe(s){force_note} → {printables_dir}"
+        )
 
-        converted = 0
-        skipped = 0
+        changed = 0
+        unchanged = 0
         errors = 0
 
         for recipe_path in recipe_files:
@@ -844,6 +865,9 @@ def main():
                     lines, paints, args.force
                 )
 
+                # Check if markdown actually changed
+                md_changed = lines != updated_lines
+
                 with open(recipe_path, "w", encoding="utf-8") as f:
                     f.writelines(updated_lines)
 
@@ -851,17 +875,26 @@ def main():
                 recipe_data = parse_recipe(updated_lines)
                 generate_docx(recipe_data, docx_path, verbose=args.verbose)
 
-                if args.verbose:
-                    print(f"  {recipe_path.name}: filled {rows_filled}, skipped {rows_skipped}")
+                if md_changed:
+                    if args.verbose:
+                        print(
+                            f"  {recipe_path.name}: filled {rows_filled}, skipped {rows_skipped}"
+                        )
+                    else:
+                        print(f"  {recipe_path.name}")
+                    changed += 1
                 else:
-                    print(f"  {recipe_path.name}")
-                converted += 1
+                    unchanged += 1
 
             except Exception as e:
                 print(f"  [ERROR] {recipe_path.name}: {e}")
                 errors += 1
 
-        parts = [f"{converted} done"]
+        parts = []
+        if changed:
+            parts.append(f"{changed} changed")
+        if unchanged:
+            parts.append(f"{unchanged} unchanged")
         if errors:
             parts.append(f"{errors} errors")
         print(f"Done. {', '.join(parts)}.")
