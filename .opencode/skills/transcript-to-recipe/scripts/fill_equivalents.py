@@ -91,6 +91,39 @@ def load_paints(script_dir: Path) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Spray primer lookup
+# ---------------------------------------------------------------------------
+
+SPRAY_PATTERN = re.compile(r"\b(spray|undercoat|primer)\b", re.IGNORECASE)
+
+
+def build_spray_primer_lookup(paints: dict) -> dict:
+    """Build reverse map: Citadel paint name -> Spray Primer name."""
+    spray_table = paints.get("Spray Primers", {})
+    reverse: dict[str, str] = {}
+    for primer_name, entry in spray_table.items():
+        cit_list = entry.get("citadel", [])
+        if isinstance(cit_list, list):
+            for cit_name in cit_list:
+                reverse[cit_name] = primer_name
+        elif isinstance(cit_list, str):
+            reverse[cit_list] = primer_name
+    return reverse
+
+
+def is_spray_paint(source_paint: str) -> bool:
+    """Check if the paint name indicates a spray/undercoat/primer."""
+    return bool(SPRAY_PATTERN.search(source_paint))
+
+
+def strip_spray_suffix(name: str) -> str:
+    """Remove spray/undercoat/primer suffixes and parenthetical notes."""
+    name = re.sub(r"\s*\(([^)]+)\)\s*$", "", name).strip()
+    name = re.sub(r"\s+(spray|undercoat|primer)\s*$", "", name, flags=re.IGNORECASE).strip()
+    return name
+
+
+# ---------------------------------------------------------------------------
 # Lookup logic
 # ---------------------------------------------------------------------------
 
@@ -112,7 +145,7 @@ def build_wf_reverse_lookup(paints: dict) -> dict:
 
 
 def lookup_equivalents(
-    brand: str, source_paint: str, paints: dict, wf_reverse: dict
+    brand: str, source_paint: str, paints: dict, wf_reverse: dict, spray_primer_lookup: dict
 ) -> tuple:
     """
     Return (ttc_col, citadel_col, warpaints_fanatic_col) for a source paint.
@@ -145,6 +178,13 @@ def lookup_equivalents(
             if contrast_entry:
                 speedpaint = contrast_entry.get("speedpaint", NO_EQ)
                 return NO_EQ, NO_EQ, speedpaint
+
+    # --- Special handling: Spray primers ---
+    if is_spray_paint(source_paint):
+        paint_base = strip_spray_suffix(source_paint)
+        primer = spray_primer_lookup.get(paint_base)
+        if primer:
+            return primer, primer, NO_EQ
 
     if brand_table is None:
         if brand not in ("Citadel Contrast", "Army Painter Speedpaint"):
@@ -273,6 +313,7 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
     """
     speedpaint_names = get_speedpaint_names(paints)
     wf_reverse = build_wf_reverse_lookup(paints)
+    spray_primer_lookup = build_spray_primer_lookup(paints)
 
     result = []
     in_equiv_section = False
@@ -363,7 +404,7 @@ def fill_equivalents(lines: list, paints: dict, force: bool) -> tuple:
             continue
 
         ttc_new, citadel_new, wf_new = lookup_equivalents(
-            brand, source_paint, paints, wf_reverse
+            brand, source_paint, paints, wf_reverse, spray_primer_lookup
         )
 
         if table_columns == 6:

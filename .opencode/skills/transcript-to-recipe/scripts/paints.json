@@ -4044,5 +4044,34 @@
     "Grim Black": {
       "citadel_contrast": "Black Templar"
     }
+  },
+  "Spray Primers": {
+    "Black Primer": {
+      "citadel": ["Chaos Black", "Black 2.0", "织田信長"]
+    },
+    "White Primer": {
+      "citadel": ["Wraithbone", "White Scar", "White 2.0"]
+    },
+    "Grey Primer": {
+      "citadel": ["Mechanicus Standard Grey", "Grey Seer"]
+    },
+    "Khaki Primer": {
+      "citadel": ["Zandri Dust"]
+    },
+    "Blue Primer": {
+      "citadel": ["The Fang"]
+    },
+    "Green Primer": {
+      "citadel": ["Warpaint Green"]
+    },
+    "Red Primer": {
+      "citadel": ["Mephiston Red"]
+    },
+    "Orange Primer": {
+      "citadel": ["Jokaero Orange"]
+    },
+    "Purple Primer": {
+      "citadel": ["Kakophoni Purple"]
+    }
   }
 }
