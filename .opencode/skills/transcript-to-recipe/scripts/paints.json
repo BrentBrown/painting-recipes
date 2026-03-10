@@ -4070,7 +4070,10 @@
       "citadel": ["Zandri Dust"]
     },
     "Blue Primer": {
-      "citadel": ["The Fang", "Macragge Blue"]
+      "citadel": ["Macragge Blue"]
+    },
+    "Blue-Grey Primer": {
+      "citadel": ["The Fang"]
     },
     "Green Primer": {
       "citadel": ["Warpaint Green"]
