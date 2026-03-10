@@ -4053,7 +4053,10 @@
       "citadel": ["Wraithbone", "White Scar", "White 2.0"]
     },
     "Grey Primer": {
-      "citadel": ["Mechanicus Standard Grey", "Grey Seer"]
+      "citadel": ["Grey Seer"]
+    },
+    "Metallic Primer": {
+      "citadel": ["Mechanicus Standard Grey"]
     },
     "Khaki Primer": {
       "citadel": ["Zandri Dust"]
